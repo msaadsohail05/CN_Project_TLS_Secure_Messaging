@@ -1,4 +1,4 @@
-import socket, sys, threading
+import argparse, socket, ssl, threading
 from protocol import *
 
 clients = {}                 # username -> socket
@@ -9,9 +9,16 @@ def safe_send(sock, ftype, payload=b""):
     with send_lock:
         send_frame(sock, ftype, payload)
 
-def handle(conn, addr):
+def handle(conn, addr, ctx):
     name = None
     try:
+        if ctx is not None:
+            # The handshake happens here, in the client's own thread, so one slow
+            # or broken client cannot block the accept loop for everyone else.
+            conn.settimeout(10)
+            conn = ctx.wrap_socket(conn, server_side=True)
+            conn.settimeout(None)
+            print(f"TLS handshake ok from {addr}: {conn.version()} {conn.cipher()[0]}")
         while True:
             ftype, payload = recv_frame(conn)
             if ftype == REGISTER:
@@ -43,6 +50,10 @@ def handle(conn, addr):
                     safe_send(dest, MESSAGE, pack_name(name, body))
             else:
                 safe_send(conn, ERROR, b"unknown type")
+    except ssl.SSLError as e:
+        print(f"TLS failure from {addr}: {e.reason or e}")
+    except socket.timeout:
+        print(f"handshake timed out from {addr}")
     except (ConnectionError, ValueError, OSError):
         pass
     finally:
@@ -53,10 +64,25 @@ def handle(conn, addr):
         print(f"closed {addr}")
 
 if __name__ == "__main__":
-    host = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
-    port = int(sys.argv[2]) if len(sys.argv) > 2 else 8443
-    with socket.create_server((host, port)) as srv:
-        print(f"relay listening on {host}:{port}")
+    p = argparse.ArgumentParser()
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8443)
+    p.add_argument("--tls", action="store_true", help="require TLS 1.3")
+    p.add_argument("--cert", default="certs/server.crt")
+    p.add_argument("--key", default="certs/server.key")
+    p.add_argument("--keylog", help="write TLS secrets here for Wireshark")
+    args = p.parse_args()
+
+    ctx = None
+    if args.tls:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_3
+        ctx.load_cert_chain(args.cert, args.key)
+        if args.keylog:
+            ctx.keylog_filename = args.keylog
+
+    with socket.create_server((args.host, args.port)) as srv:
+        print(f"relay listening on {args.host}:{args.port} ({'TLS 1.3' if ctx else 'plain TCP'})")
         while True:
             conn, addr = srv.accept()
-            threading.Thread(target=handle, args=(conn, addr), daemon=True).start()
+            threading.Thread(target=handle, args=(conn, addr, ctx), daemon=True).start()

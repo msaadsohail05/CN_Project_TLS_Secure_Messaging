@@ -1,4 +1,4 @@
-import socket, sys, threading
+import argparse, socket, ssl, sys, threading
 from protocol import *
 
 def receiver(sock):
@@ -18,11 +18,30 @@ def receiver(sock):
         print("\nconnection closed")
 
 if __name__ == "__main__":
-    user = sys.argv[1]
-    host = sys.argv[2] if len(sys.argv) > 2 else "127.0.0.1"
-    port = int(sys.argv[3]) if len(sys.argv) > 3 else 8443
-    sock = socket.create_connection((host, port))
-    send_frame(sock, REGISTER, user.encode())
+    p = argparse.ArgumentParser()
+    p.add_argument("user")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8443)
+    p.add_argument("--tls", action="store_true")
+    p.add_argument("--ca", default="certs/ca.crt")
+    p.add_argument("--sni", default="relay.local", help="name the certificate must match")
+    p.add_argument("--keylog")
+    args = p.parse_args()
+
+    sock = socket.create_connection((args.host, args.port))
+    if args.tls:
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=args.ca)
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_3
+        if args.keylog:
+            ctx.keylog_filename = args.keylog
+        try:
+            sock = ctx.wrap_socket(sock, server_hostname=args.sni)
+        except ssl.SSLError as e:
+            print("TLS handshake failed:", e)
+            sys.exit(1)
+        print("connected:", sock.version(), sock.cipher()[0])
+
+    send_frame(sock, REGISTER, args.user.encode())
     threading.Thread(target=receiver, args=(sock,), daemon=True).start()
     print("type 'bob: hello' to send, '/lookup bob' to check, '/quit' to exit")
     for line in sys.stdin:
