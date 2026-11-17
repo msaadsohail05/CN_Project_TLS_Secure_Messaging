@@ -56,6 +56,11 @@ mkpair tmpt1 r1      eth-t tmpt2 r2 eth-t
   ip netns exec r1 sysctl -qw net.ipv4.ip_forward=1
   ip netns exec r2 sysctl -qw net.ipv4.ip_forward=1
 
+    # static routes (Stage 4)
+  ip -n r1 route add 10.0.2.0/24 via 10.0.12.2
+  ip -n r2 route add 10.0.1.0/24 via 10.0.12.1
+  ip -n r2 route add 10.0.3.0/24 via 10.0.12.1
+
   echo "topology up"
 }
 

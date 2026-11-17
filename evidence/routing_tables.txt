@@ -1,0 +1,19 @@
+== clientA
+default via 10.0.1.1 dev eth0 
+10.0.1.0/24 dev eth0 proto kernel scope link src 10.0.1.10 
+== clientB
+default via 10.0.3.1 dev eth0 
+10.0.3.0/24 dev eth0 proto kernel scope link src 10.0.3.10 
+== r1
+10.0.1.0/24 dev eth-a proto kernel scope link src 10.0.1.1 
+10.0.2.0/24 via 10.0.12.2 dev eth-t 
+10.0.3.0/24 dev eth-b proto kernel scope link src 10.0.3.1 
+10.0.12.0/29 dev eth-t proto kernel scope link src 10.0.12.1 
+== r2
+10.0.1.0/24 via 10.0.12.1 dev eth-t 
+10.0.2.0/24 dev eth-rl proto kernel scope link src 10.0.2.1 
+10.0.3.0/24 via 10.0.12.1 dev eth-t 
+10.0.12.0/29 dev eth-t proto kernel scope link src 10.0.12.2 
+== relay
+default via 10.0.2.1 dev eth0 
+10.0.2.0/24 dev eth0 proto kernel scope link src 10.0.2.10 
