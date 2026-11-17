@@ -1,6 +1,8 @@
 import struct
 
-REGISTER, LOOKUP, MESSAGE, ERROR = 1, 2, 3, 4
+import re
+REGISTER, LOOKUP, MESSAGE, ERROR, PUBLISH = 1, 2, 3, 4, 5
+NAME_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")  # usernames: safe for file names too
 MAX_FRAME = 1 << 20  # 1 MiB safety limit
 
 def recv_exact(sock, n):

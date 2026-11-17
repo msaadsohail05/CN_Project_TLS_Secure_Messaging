@@ -2,7 +2,8 @@ import argparse, socket, ssl, threading
 from protocol import *
 
 clients = {}                 # username -> socket
-lock = threading.Lock()      # protects the clients dict
+pubkeys = {}                 # username -> 32-byte X25519 public key
+lock = threading.Lock()      # protects clients and pubkeys
 send_lock = threading.Lock() # stops two threads interleaving frames on one socket
 
 def safe_send(sock, ftype, payload=b""):
@@ -13,8 +14,6 @@ def handle(conn, addr, ctx):
     name = None
     try:
         if ctx is not None:
-            # The handshake happens here, in the client's own thread, so one slow
-            # or broken client cannot block the accept loop for everyone else.
             conn.settimeout(10)
             conn = ctx.wrap_socket(conn, server_side=True)
             conn.settimeout(None)
@@ -23,6 +22,12 @@ def handle(conn, addr, ctx):
             ftype, payload = recv_frame(conn)
             if ftype == REGISTER:
                 user = payload.decode()
+                if name is not None:
+                    safe_send(conn, ERROR, b"already registered")
+                    continue
+                if not NAME_RE.match(user):
+                    safe_send(conn, ERROR, b"invalid name")
+                    continue
                 with lock:
                     taken = user in clients
                     if not taken:
@@ -33,10 +38,26 @@ def handle(conn, addr, ctx):
                 name = user
                 safe_send(conn, REGISTER, b"ok")
                 print(f"registered {user} from {addr}")
-            elif ftype == LOOKUP:
+            elif ftype == PUBLISH:
+                if name is None:
+                    safe_send(conn, ERROR, b"register first")
+                    continue
+                if len(payload) != 32:
+                    safe_send(conn, ERROR, b"bad key length")
+                    continue
                 with lock:
-                    found = payload.decode() in clients
-                safe_send(conn, LOOKUP, b"1" if found else b"0")
+                    pubkeys[name] = payload
+                safe_send(conn, PUBLISH, b"ok")
+                print(f"published key for {name}: {payload.hex()[:16]}...")
+            elif ftype == LOOKUP:
+                user = payload.decode()
+                if not NAME_RE.match(user):
+                    safe_send(conn, ERROR, b"invalid name")
+                    continue
+                with lock:
+                    key = pubkeys.get(user)
+                body = (b"\x01" + key) if key else b"\x00"
+                safe_send(conn, LOOKUP, pack_name(user, body))
             elif ftype == MESSAGE:
                 if name is None:
                     safe_send(conn, ERROR, b"register first")
@@ -60,6 +81,7 @@ def handle(conn, addr, ctx):
         with lock:
             if name and clients.get(name) is conn:
                 del clients[name]
+                pubkeys.pop(name, None)
         conn.close()
         print(f"closed {addr}")
 
