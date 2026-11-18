@@ -114,6 +114,7 @@ if __name__ == "__main__":
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8443)
     p.add_argument("--tls", action="store_true")
+    p.add_argument("--tls-version", choices=["1.3", "1.2"], default="1.3")
     p.add_argument("--ca", default="certs/ca.crt")
     p.add_argument("--sni", default="relay.local", help="name the certificate must match")
     p.add_argument("--keylog")
@@ -132,7 +133,9 @@ if __name__ == "__main__":
     sock = socket.create_connection((args.host, args.port))
     if args.tls:
         ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=args.ca)
-        ctx.minimum_version = ssl.TLSVersion.TLSv1_3
+        v = ssl.TLSVersion.TLSv1_3 if args.tls_version == "1.3" else ssl.TLSVersion.TLSv1_2
+        ctx.minimum_version = v
+        ctx.maximum_version = v
         if args.keylog:
             ctx.keylog_filename = args.keylog
         try:

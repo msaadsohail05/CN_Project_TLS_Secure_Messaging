@@ -17,7 +17,7 @@ def handle(conn, addr, ctx):
             conn.settimeout(10)
             conn = ctx.wrap_socket(conn, server_side=True)
             conn.settimeout(None)
-            print(f"TLS handshake ok from {addr}: {conn.version()} {conn.cipher()[0]}")
+            print(f"TLS handshake ok from {addr}: {conn.version()} {conn.cipher()[0]} resumed={conn.session_reused}")
         while True:
             ftype, payload = recv_frame(conn)
             if ftype == REGISTER:
@@ -91,6 +91,7 @@ if __name__ == "__main__":
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8443)
     p.add_argument("--tls", action="store_true", help="require TLS 1.3")
+    p.add_argument("--tls-version", choices=["1.3", "1.2"], default="1.3",help="the only TLS version the relay will accept")
     p.add_argument("--cert", default="certs/server.crt")
     p.add_argument("--key", default="certs/server.key")
     p.add_argument("--keylog", help="write TLS secrets here for Wireshark")
@@ -99,13 +100,15 @@ if __name__ == "__main__":
     ctx = None
     if args.tls:
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ctx.minimum_version = ssl.TLSVersion.TLSv1_3
+        v = ssl.TLSVersion.TLSv1_3 if args.tls_version == "1.3" else ssl.TLSVersion.TLSv1_2
+        ctx.minimum_version = v
+        ctx.maximum_version = v
         ctx.load_cert_chain(args.cert, args.key)
         if args.keylog:
             ctx.keylog_filename = args.keylog
 
     with socket.create_server((args.host, args.port)) as srv:
-        print(f"relay listening on {args.host}:{args.port} ({'TLS 1.3' if ctx else 'plain TCP'})")
+        print(f"relay listening on {args.host}:{args.port} ({'TLS ' + args.tls_version if ctx else 'plain TCP'})")
         while True:
             conn, addr = srv.accept()
             threading.Thread(target=handle, args=(conn, addr, ctx), daemon=True).start()
