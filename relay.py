@@ -68,6 +68,7 @@ def handle(conn, addr, ctx):
                 if dest is None:
                     safe_send(conn, ERROR, b"unknown recipient")
                 else:
+                    print(f"forward {name}->{to}: {len(body)} bytes: {body.hex()[:48]}...")
                     safe_send(dest, MESSAGE, pack_name(name, body))
             else:
                 safe_send(conn, ERROR, b"unknown type")
