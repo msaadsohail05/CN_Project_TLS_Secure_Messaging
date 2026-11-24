@@ -1,16 +1,4 @@
-# secrets and per-machine state
 certs/
-keys/
-keys_ui/
-keys_demo/
 __pycache__/
-*.pyc
-
-# captures: large/unstable by default, but the graded evidence captures ARE committed
 *.pcapng
-*.pcap
 *.keylog
-!evidence/captures/
-!evidence/captures/*.pcapng
-!evidence/captures/*.pcap
-!evidence/captures/*.keylog

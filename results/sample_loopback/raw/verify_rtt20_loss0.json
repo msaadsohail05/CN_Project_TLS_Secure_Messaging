@@ -1,8 +1,0 @@
-{
- "cond": "rtt20_loss0",
- "method": "emulated delay proxy (no ping verification)",
- "configured_rtt_ms": 20,
- "configured_loss_pct": 0,
- "measured_rtt_ms": null,
- "measured_loss_pct": null
-}
