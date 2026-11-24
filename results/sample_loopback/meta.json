@@ -1,0 +1,11 @@
+{
+ "env": "loopback-emulated",
+ "runs": 5,
+ "conns": 20,
+ "msgs": 100,
+ "seconds": 811,
+ "kernel": "11",
+ "python": "3.14.6",
+ "openssl": "OpenSSL 3.5.7 9 Jun 2026",
+ "finished": "2026-11-24 18:12:09"
+}

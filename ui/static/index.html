@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cipherline · Secure Messaging Lab</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0e11'/%3E%3Cpath d='M6 20h6l3-8 4 12 3-8h4' fill='none' stroke='%234de0c4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="8" class="b-bg"/><path d="M6 20h6l3-8 4 12 3-8h4" fill="none" class="b-line" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><b>Cipherline</b><span>TLS 1.3 + E2EE secure messaging lab</span></div>
+  </div>
+  <nav id="nav" aria-label="Sections">
+    <button data-view="lab" class="on">Live lab</button>
+    <button data-view="topology">Topology</button>
+    <button data-view="experiments">Experiments</button>
+    <button data-view="attacks">Attack lab</button>
+    <button data-view="evidence">Evidence</button>
+  </nav>
+  <div class="top-r">
+    <span class="live" id="live" title="event stream"><i></i><em>connecting</em></span>
+    <button class="icon" id="theme" aria-label="Toggle light / dark theme" title="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 3a9 9 0 1 0 9 9c-5 1-10-4-9-9z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<!-- =============================================================== LIVE LAB -->
+<section class="view on" id="view-lab">
+  <div class="scenario">
+    <div class="seg" id="modeSeg" role="radiogroup" aria-label="Operating mode">
+      <button data-mode="tcp"  role="radio"><b>Plain TCP</b><span>no TLS · no E2EE</span></button>
+      <button data-mode="tls"  role="radio"><b>TLS 1.3</b><span>hop security only</span></button>
+      <button data-mode="e2ee" role="radio" class="on"><b>TLS 1.3 + E2EE</b><span>the real system</span></button>
+    </div>
+    <div class="toggles">
+      <label class="tg"><input type="checkbox" id="tTamper"><i></i><span>Tamper in transit<small>flip 1 ciphertext byte</small></span></label>
+      <label class="tg"><input type="checkbox" id="tEvil"><i></i><span>Malicious relay<small>swaps Bob's public key</small></span></label>
+      <label class="tg"><input type="checkbox" id="tPin"><i></i><span>Pin Bob's fingerprint<small>Alice checks out-of-band</small></span></label>
+    </div>
+    <div class="chips" id="sessionChips"></div>
+  </div>
+
+  <p class="explain" id="explain"></p>
+
+  <div class="lab">
+    <article class="person" id="aliceCard" data-who="alice">
+      <header><div class="av a">A</div><div><h3>Alice</h3><p class="mono">netns clientA · 10.0.1.10</p></div></header>
+      <div class="fp"><span class="lbl">my fingerprint</span><code id="fp-alice-own"></code></div>
+      <div class="fp"><span class="lbl">Bob's, as I see it</span><code id="fp-alice-peer" class="dim">not looked up yet</code></div>
+      <div class="chat" id="chat-alice" aria-live="polite"></div>
+      <form class="composer" data-who="alice"><input autocomplete="off" placeholder="Message Bob…" maxlength="300"><button>Send</button></form>
+    </article>
+
+    <section class="center">
+      <div class="card anatomy">
+        <h4>Anatomy of the last message <em id="anatomyVerified"></em></h4>
+        <div class="stack" id="stack"><div class="empty">Send a message to see where every byte comes from.</div></div>
+        <ul class="legend" id="stackLegend"></ul>
+        <div class="total" id="stackTotal"></div>
+      </div>
+      <div class="card pipe">
+        <h4>Path</h4>
+        <div class="pipeline" id="pipeline">
+          <div class="pn">Alice</div><div class="pl" id="pl1"><span class="tag" id="tag1">TLS</span><i></i></div>
+          <div class="pn relay" id="pnRelay">Relay</div><div class="pl" id="pl2"><span class="tag" id="tag2">TLS</span><i></i></div><div class="pn">Bob</div>
+        </div>
+        <p class="hint" id="pipeHint"></p>
+      </div>
+      <div class="card verdict" id="verdict"><h4>Verdicts</h4><div id="alerts"><div class="empty">Alerts from the clients and relay appear here.</div></div></div>
+    </section>
+
+    <article class="person" id="bobCard" data-who="bob">
+      <header><div class="av b">B</div><div><h3>Bob</h3><p class="mono">netns clientB · 10.0.3.10</p></div></header>
+      <div class="fp"><span class="lbl">my fingerprint</span><code id="fp-bob-own"></code></div>
+      <div class="fp"><span class="lbl">Alice's, as I see it</span><code id="fp-bob-peer" class="dim">not looked up yet</code></div>
+      <div class="chat" id="chat-bob" aria-live="polite"></div>
+      <form class="composer" data-who="bob"><input autocomplete="off" placeholder="Message Alice…" maxlength="300"><button>Send</button></form>
+    </article>
+  </div>
+
+  <div class="observers">
+    <section class="card obs">
+      <h4><span class="dot eve"></span>On the wire <small>passive eavesdropper on the R1–R2 link</small></h4>
+      <div class="feed" id="wireFeed"><div class="empty">Parsed from raw bytes with no keys: this is all a sniffer can ever read.</div></div>
+    </section>
+    <section class="card obs">
+      <h4><span class="dot relay"></span>Inside the relay <small>what the server itself handles</small></h4>
+      <div class="feed" id="relayFeed"><div class="empty">Frames the relay forwards, after TLS is removed.</div></div>
+    </section>
+  </div>
+  <div class="toolbar">
+    <button class="ghost" id="btnRogue">Connect a client that trusts a rogue CA</button>
+    <button class="ghost" id="btnClear">Clear feeds</button>
+  </div>
+</section>
+
+<!-- =============================================================== TOPOLOGY -->
+<section class="view" id="view-topology">
+  <div class="head"><div><h2>Routed topology</h2><p>Five Linux network namespaces, two routers, four subnets, static routes. Messages sent in the live lab light up the path they would take.</p></div>
+    <div class="seg small" id="condSeg"><button data-c="">no impairment</button></div></div>
+  <div class="card topo" id="topo"><div class="empty">loading…</div></div>
+  <div class="grid3">
+    <div class="card"><h4>Addressing plan</h4>
+      <table class="tbl mono"><thead><tr><th>Node</th><th>Interface</th><th>Address</th><th>Gateway</th></tr></thead><tbody>
+      <tr><td>clientA</td><td>eth0</td><td>10.0.1.10/24</td><td>10.0.1.1</td></tr>
+      <tr><td>clientB</td><td>eth0</td><td>10.0.3.10/24</td><td>10.0.3.1</td></tr>
+      <tr><td>relay</td><td>eth0</td><td>10.0.2.10/24</td><td>10.0.2.1</td></tr>
+      <tr><td rowspan="3">R1</td><td>eth-a</td><td>10.0.1.1/24</td><td></td></tr><tr><td>eth-b</td><td>10.0.3.1/24</td><td></td></tr><tr><td>eth-t</td><td>10.0.12.1/29</td><td></td></tr>
+      <tr><td rowspan="2">R2</td><td>eth-rl</td><td>10.0.2.1/24</td><td></td></tr><tr><td>eth-t</td><td>10.0.12.2/29</td><td></td></tr>
+      </tbody></table></div>
+    <div class="card"><h4>Static routes</h4>
+      <table class="tbl mono"><thead><tr><th>Router</th><th>Destination</th><th>Next hop</th></tr></thead><tbody>
+      <tr><td>R1</td><td>10.0.2.0/24</td><td>10.0.12.2</td></tr>
+      <tr><td>R2</td><td>10.0.1.0/24</td><td>10.0.12.1</td></tr>
+      <tr><td>R2</td><td>10.0.3.0/24</td><td>10.0.12.1</td></tr></tbody></table>
+      <h4 style="margin-top:18px">Traceroute clientA → relay</h4>
+      <pre class="pre">1  10.0.1.1    (R1)
+2  10.0.12.2   (R2)
+3  10.0.2.10   (relay)</pre></div>
+    <div class="card"><h4>Ports</h4>
+      <table class="tbl mono"><thead><tr><th>Port</th><th>Service</th></tr></thead><tbody>
+      <tr><td>8443/tcp</td><td>TLS 1.3 (TLS 1.2 allowed for the comparison)</td></tr>
+      <tr><td>8080/tcp</td><td>plain TCP baseline</td></tr>
+      <tr><td>5201/tcp</td><td>iperf3 link check</td></tr></tbody></table>
+      <h4 style="margin-top:18px">Impairment commands</h4>
+      <pre class="pre">sudo bash scripts/impair.sh set \
+  --rtt-ms 100 --loss 2
+sudo bash scripts/impair.sh clear</pre></div>
+  </div>
+</section>
+
+<!-- =============================================================== EXPERIMENTS -->
+<section class="view" id="view-experiments">
+  <div class="head"><div><h2>Experiments</h2><p id="expSub">What the security layers cost, measured.</p></div></div>
+  <div id="expBanner"></div>
+  <div id="expBody"></div>
+</section>
+
+<!-- =============================================================== ATTACKS -->
+<section class="view" id="view-attacks">
+  <div class="head"><div><h2>Attack lab</h2><p>Each scenario builds a throw-away system, performs a real attack and reports whether the defence held. Same code the demo script and tests use.</p></div>
+    <button class="primary" id="runAll">Run all scenarios</button></div>
+  <div class="attacks" id="attackGrid"></div>
+</section>
+
+<!-- =============================================================== EVIDENCE -->
+<section class="view" id="view-evidence">
+  <div class="head"><div><h2>Evidence &amp; deliverables</h2><p>Capture checklist from the proposal, plots, documents and the five-minute demo script.</p></div></div>
+  <div id="evBody"></div>
+</section>
+
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
