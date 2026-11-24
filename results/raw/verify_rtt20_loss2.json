@@ -1,0 +1,8 @@
+{
+ "cond": "rtt20_loss2",
+ "method": "ping -c 200 -i 0.02 clientA->relay",
+ "configured_rtt_ms": 20,
+ "configured_loss_pct": 2,
+ "measured_rtt_ms": 32.368,
+ "measured_loss_pct": 2.0
+}

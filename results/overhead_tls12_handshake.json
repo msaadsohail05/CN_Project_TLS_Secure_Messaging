@@ -1,0 +1,99 @@
+[
+ {
+  "client": "10.0.1.10:33174",
+  "server": "10.0.2.10:8443",
+  "packets": {
+   "c2s": 8,
+   "s2c": 6
+  },
+  "tcp_handshake_ms_at_capture_point": 2.517,
+  "syn_to_synack_ms": 1.79,
+  "bytes": {
+   "l3_total": {
+    "c2s": 752,
+    "s2c": 1891
+   },
+   "header_bytes": {
+    "c2s": 412,
+    "s2c": 320
+   },
+   "tcp_payload": {
+    "c2s": 340,
+    "s2c": 1571
+   },
+   "retransmitted_payload": {
+    "c2s": 0,
+    "s2c": 0
+   },
+   "pure_acks": {
+    "c2s": 2,
+    "s2c": 1
+   }
+  },
+  "tls": {
+   "records": {
+    "c2s": {
+     "handshake": {
+      "count": 3,
+      "wire": 295
+     },
+     "change_cipher_spec": {
+      "count": 1,
+      "wire": 6
+     },
+     "application_data": {
+      "count": 1,
+      "wire": 39
+     }
+    },
+    "s2c": {
+     "handshake": {
+      "count": 6,
+      "wire": 1493
+     },
+     "change_cipher_spec": {
+      "count": 1,
+      "wire": 6
+     },
+     "application_data": {
+      "count": 1,
+      "wire": 41
+     },
+     "alert": {
+      "count": 1,
+      "wire": 31
+     }
+    }
+   },
+   "client_hello": {
+    "wire": 208,
+    "cipher": null,
+    "has_psk": false,
+    "version": "?",
+    "sni": "relay.local"
+   },
+   "server_hello": {
+    "wire": 70,
+    "cipher": 49200,
+    "has_psk": false,
+    "version": "TLS1.2"
+   },
+   "version": "TLS1.2",
+   "resumed": false,
+   "handshake_bytes": {
+    "c2s": 301,
+    "s2c": 1499,
+    "records_c2s": 4,
+    "records_s2c": 7
+   },
+   "post_handshake_records": {
+    "c2s": 1,
+    "s2c": 2,
+    "c2s_bytes": 39,
+    "s2c_bytes": 72
+   },
+   "handshake_ms_at_capture_point": 10.724,
+   "record_overhead_per_app_record_bytes": 29
+  }
+ }
+]

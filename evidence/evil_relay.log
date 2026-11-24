@@ -1,0 +1,17 @@
+[relay] listening host=10.0.2.10 port=8443 proto=TLS
+EVIL relay running: substituting keys for ['alice', 'alice2', 'bob']
+[relay] tls peer=('10.0.3.10', 34176) version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 resumed=False
+[relay] register user=bob addr=('10.0.3.10', 34176)
+[relay] publish user=bob key=c0893517c531b0b88e0ac3b8bc976b16e45a4dbc79fc855de15cb67078e42709
+[relay] closed peer=('10.0.3.10', 34176) user=bob
+[relay] tls peer=('10.0.1.10', 41772) version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 resumed=False
+[relay] register user=alice addr=('10.0.1.10', 41772)
+[relay] publish user=alice key=30c0f5787103f2734984f8bf4cf028242a1c886b22ce9aaebe4864224ee9c412
+[relay] lookup by=alice user=bob found=False
+[relay] closed peer=('10.0.1.10', 41772) user=alice
+[relay] tls peer=('10.0.1.10', 41788) version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 resumed=False
+[relay] register user=alice2 addr=('10.0.1.10', 41788)
+[relay] publish user=alice2 key=95e0648b7e5e59b70864144d3f1dac1a235dbba5b9d6e60746851b1cbdd5942e
+[relay] lookup by=alice2 user=bob found=False
+[relay] closed peer=('10.0.1.10', 41788) user=alice2
+Terminated

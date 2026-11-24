@@ -1,0 +1,8 @@
+my public key: c0893517c531b0b88e0ac3b8bc976b16e45a4dbc79fc855de15cb67078e42709
+fingerprint:   79e1 56dc c763 624d aa76 a4a7 ef60 0ca9
+connected: TLSv1.3 TLS_AES_256_GCM_SHA384
+mode=e2ee. type 'bob: hello' to send, '/lookup bob' to fetch a key, '/quit' to exit
+
+[registered]
+
+[published]

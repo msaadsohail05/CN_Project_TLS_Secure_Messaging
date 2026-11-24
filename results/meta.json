@@ -1,0 +1,11 @@
+{
+ "env": "netns",
+ "runs": 5,
+ "conns": 20,
+ "msgs": 100,
+ "seconds": 1805,
+ "kernel": "6.17.0-19-generic",
+ "python": "3.12.3",
+ "openssl": "OpenSSL 3.0.13 30 Jan 2024",
+ "finished": "2026-11-24 20:02:37"
+}

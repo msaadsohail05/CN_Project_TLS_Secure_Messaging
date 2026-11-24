@@ -1,0 +1,3 @@
+MITM listening on 0.0.0.0:9443 -> 10.0.2.10:8443 with a forged certificate
+[mitm] victim-rejected {'peer': ('10.0.1.10', 35346), 'reason': 'TLSV1_ALERT_UNKNOWN_CA'}
+Terminated
