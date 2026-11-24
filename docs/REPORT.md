@@ -120,7 +120,7 @@ Five distinct points across two sweeps, 5 runs each (the requirement is ≥ 3 co
 ### 5.3 Procedure and validity
 
 Per condition: apply netem → **verify** (200 pings: configured vs measured RTT and loss) → handshake matrix (20 sequential connections × {TCP, TLS 1.2, TLS 1.3, TLS 1.3 resumed} × 5 runs, configuration order shuffled each run)
-→ latency matrix (100 messages A→B × {tcp, tls, e2ee} × {64 B, 1 KiB, 16 KiB} × 5 runs, order shuffled each run, 10 ms pacing so sender queueing is not counted) → clear. Statistics: per-run means, then mean ± standard deviation across the 5 runs; min / median / p95 / max retained;
+→ latency matrix (100 messages A→B × {tcp, tls, e2ee} × {64 B, 1 KiB, 16 KiB} × 5 runs, order shuffled each run, 10 ms pacing: sufficient for small messages; for 16 KiB at high RTT the sender queue grows while TCP's window opens, and that is part of the result, see §6.2) → clear. Statistics: per-run means, then mean ± standard deviation across the 5 runs; min / median / p95 / max retained;
 no run or outlier is dropped (a lost SYN costs a ≈ 1 s retransmission, which is an explainable outlier, not noise). Key discovery (one LOOKUP round trip) is performed before timing starts so it is not folded into per-message latency.
 Threats to validity: a shared laptop adds scheduling jitter (mitigated by repetition, shuffling and reporting σ); netem loss is a statistical model, hence the measured-vs-configured check; all namespaces share one clock, which makes one-way latency measurable but means there is no clock skew to emulate.
 
@@ -143,30 +143,29 @@ figures: `results/plots/`. Numbers are mean ± standard deviation across the run
 The measured RTT is 10-30 ms above the configured value (netem timer granularity, the veth hops and the VM's scheduling), so ratios below use the **measured** RTT.
 Loss is applied on one direction only; the measured 2.0 % and 4.0 % (from 200 pings per condition) agree with the nominal 2 % / 5 % within sampling error.
 
-### 6.1 Handshake (ms)
+### 6.1 Handshake (ms, mean ± standard deviation across 5 runs)
 
-| Condition | Configuration | TCP connect | TLS handshake | Time to first data | Runs | Errors |
-|---|---|---|---|---|---|---|
-| 20 ms / 0 % | Plain TCP | 46.68 ± 6.47 | – | 92.6 ± 14.8 | 5 | 0 |
-| 20 ms / 0 % | TLS 1.2 | 42.15 ± 13.34 | 81.6 ± 20.3 | 154.2 ± 35.0 | 5 | 0 |
-| 20 ms / 0 % | TLS 1.3 | 45.73 ± 12.41 | 45.8 ± 12.2 | 133.6 ± 19.3 | 5 | 0 |
-| 20 ms / 0 % | TLS 1.3 resumed | 42.98 ± 10.90 | 41.0 ± 9.0 | 127.4 ± 35.2 | 5 | 0 |
-| 100 ms / 0 % | Plain TCP | 128.91 ± 8.08 | – | 242.5 ± 8.8 | 5 | 0 |
-| 100 ms / 0 % | TLS 1.2 | 125.82 ± 11.56 | 234.8 ± 11.2 | 476.4 ± 29.7 | 5 | 0 |
-| 100 ms / 0 % | TLS 1.3 | 122.06 ± 6.19 | 120.7 ± 5.0 | 359.6 ± 10.3 | 5 | 0 |
-| 100 ms / 0 % | TLS 1.3 resumed | 124.03 ± 5.21 | 120.2 ± 6.7 | 360.3 ± 12.5 | 5 | 0 |
-| 200 ms / 0 % | Plain TCP | 219.37 ± 4.23 | – | 433.0 ± 4.4 | 5 | 0 |
-| 200 ms / 0 % | TLS 1.2 | 213.39 ± 5.21 | 428.5 ± 2.6 | 851.8 ± 6.5 | 5 | 0 |
-| 200 ms / 0 % | TLS 1.3 | 214.06 ± 5.23 | 220.3 ± 4.0 | 648.6 ± 6.5 | 5 | 0 |
-| 200 ms / 0 % | TLS 1.3 resumed | 216.98 ± 4.12 | 215.4 ± 3.6 | 645.6 ± 6.1 | 5 | 0 |
-| 20 ms / 2 % | Plain TCP | 40.43 ± 6.31 | – | 85.9 ± 21.1 | 5 | 0 |
-| 20 ms / 2 % | TLS 1.2 | 57.38 ± 27.88 | 86.6 ± 8.6 | 186.7 ± 42.5 | 5 | 0 |
-| 20 ms / 2 % | TLS 1.3 | 66.41 ± 31.11 | 52.6 ± 12.9 | 161.2 ± 33.7 | 5 | 0 |
-| 20 ms / 2 % | TLS 1.3 resumed | 75.98 ± 45.29 | 45.9 ± 7.3 | 170.1 ± 41.3 | 5 | 0 |
-| 20 ms / 5 % | Plain TCP | 122.44 ± 58.70 | – | 167.4 ± 57.2 | 5 | 0 |
-| 20 ms / 5 % | TLS 1.2 | 100.03 ± 43.52 | 105.8 ± 21.2 | 255.6 ± 43.8 | 5 | 0 |
-| 20 ms / 5 % | TLS 1.3 | 80.65 ± 43.03 | 64.1 ± 8.9 | 206.0 ± 54.2 | 5 | 0 |
-| 20 ms / 5 % | TLS 1.3 resumed | 53.31 ± 27.43 | 57.8 ± 23.8 | 181.9 ± 42.0 | 5 | 0 |
+**TLS handshake time** (ClientHello to handshake complete):
+
+| Condition (RTT / loss) | TLS 1.2 | TLS 1.3 | TLS 1.3 resumed |
+|---|---|---|---|
+| 20 ms / 0 % | 81.6 ± 20.3 | 45.8 ± 12.2 | 41.0 ± 9.0 |
+| 100 ms / 0 % | 235 ± 11 | 121 ± 5 | 120 ± 7 |
+| 200 ms / 0 % | 429 ± 3 | 220 ± 4 | 215 ± 4 |
+| 20 ms / 2 % | 86.6 ± 8.6 | 52.6 ± 12.9 | 45.9 ± 7.3 |
+| 20 ms / 5 % | 106 ± 21 | 64.1 ± 8.9 | 57.8 ± 23.8 |
+
+**Time to first application data** (connection start to the first reply; includes the TCP handshake):
+
+| Condition (RTT / loss) | Plain TCP | TLS 1.2 | TLS 1.3 | TLS 1.3 resumed |
+|---|---|---|---|---|
+| 20 ms / 0 % | 92.6 ± 14.8 | 154 ± 35 | 134 ± 19 | 127 ± 35 |
+| 100 ms / 0 % | 243 ± 9 | 476 ± 30 | 360 ± 10 | 360 ± 13 |
+| 200 ms / 0 % | 433 ± 4 | 852 ± 6 | 649 ± 7 | 646 ± 6 |
+| 20 ms / 2 % | 85.9 ± 21.1 | 187 ± 43 | 161 ± 34 | 170 ± 41 |
+| 20 ms / 5 % | 167 ± 57 | 256 ± 44 | 206 ± 54 | 182 ± 42 |
+
+Full tables (TCP connect, median, p95, max, body bytes, run counts): `results/summary_handshake.csv`, `results/summary_latency.csv` and the Experimental Evaluation document.
 
 Reading it against the hypotheses:
 
@@ -177,61 +176,28 @@ Reading it against the hypotheses:
 * H2 holds: a resumed TLS 1.3 handshake costs the **same** number of round trips as a full one (≈ 1.0 RTT) and is at most a few ms faster; its benefit is bytes (§7), not round trips.
 * Figures: `handshake_tls_ms_rtt.png`, `handshake_tls_ms_loss.png`, `handshake_ttfd_ms_*.png`.
 
-### 6.2 Message latency (ms)
+### 6.2 Message latency (ms, mean ± standard deviation across 5 runs)
 
-#### Message latency (ms, mean ± σ across runs)
+| Condition (RTT / loss) | Payload | Plain TCP | TLS only | TLS + E2EE |
+|---|---|---|---|---|
+| 20 ms / 0 % | 64 B | 27.5 ± 1.6 | 30.2 ± 3.3 | 27.3 ± 1.2 |
+| 20 ms / 0 % | 1024 B | 28.7 ± 2.4 | 27.4 ± 0.9 | 28.7 ± 4.3 |
+| 20 ms / 0 % | 16384 B | 31.3 ± 1.4 | 30.6 ± 1.7 | 33.4 ± 2.3 |
+| 100 ms / 0 % | 64 B | 106 ± 2 | 106 ± 2 | 107 ± 1 |
+| 100 ms / 0 % | 1024 B | 108 ± 2 | 110 ± 4 | 109 ± 2 |
+| 100 ms / 0 % | 16384 B | 934 ± 74 | 725 ± 125 | 977 ± 198 |
+| 200 ms / 0 % | 64 B | 210 ± 2 | 210 ± 1 | 210 ± 2 |
+| 200 ms / 0 % | 1024 B | 212 ± 3 | 214 ± 5 | 214 ± 3 |
+| 200 ms / 0 % | 16384 B | 1688 ± 262 | 2051 ± 414 | 2139 ± 284 |
+| 20 ms / 2 % | 64 B | 29.6 ± 3.3 | 29.3 ± 1.8 | 30.8 ± 2.1 |
+| 20 ms / 2 % | 1024 B | 30.3 ± 1.8 | 32.3 ± 4.3 | 32.4 ± 5.1 |
+| 20 ms / 2 % | 16384 B | 106 ± 50 | 162 ± 108 | 197 ± 83 |
+| 20 ms / 5 % | 64 B | 34.8 ± 4.8 | 38.7 ± 7.6 | 45.6 ± 20.4 |
+| 20 ms / 5 % | 1024 B | 42.2 ± 17.7 | 45.4 ± 5.8 | 49.8 ± 15.8 |
+| 20 ms / 5 % | 16384 B | 407 ± 100 | 393 ± 82 | 463 ± 118 |
 
-| Condition | Mode | Payload | Mean ± σ | Median | p95 | Max | Body on wire (B) |
-|---|---|---|---|---|---|---|---|
-| 20 ms / 0 % | Plain TCP | 64 B | 27.53 ± 1.61 | 25.22 | 40.38 | 101.5 | 64 |
-| 20 ms / 0 % | Plain TCP | 1024 B | 28.72 ± 2.36 | 24.66 | 42.12 | 263.8 | 1024 |
-| 20 ms / 0 % | Plain TCP | 16384 B | 31.34 ± 1.41 | 25.25 | 63.46 | 183.2 | 16384 |
-| 20 ms / 0 % | TLS only | 64 B | 30.23 ± 3.30 | 25.83 | 50.41 | 177.1 | 64 |
-| 20 ms / 0 % | TLS only | 1024 B | 27.39 ± 0.89 | 25.41 | 40.70 | 84.4 | 1024 |
-| 20 ms / 0 % | TLS only | 16384 B | 30.65 ± 1.66 | 25.86 | 60.90 | 130.7 | 16384 |
-| 20 ms / 0 % | TLS + E2EE | 64 B | 27.31 ± 1.16 | 26.34 | 30.91 | 172.5 | 104 |
-| 20 ms / 0 % | TLS + E2EE | 1024 B | 28.70 ± 4.34 | 26.10 | 34.68 | 223.3 | 1064 |
-| 20 ms / 0 % | TLS + E2EE | 16384 B | 33.44 ± 2.34 | 27.41 | 68.81 | 308.9 | 16424 |
-| 100 ms / 0 % | Plain TCP | 64 B | 106.32 ± 2.10 | 104.62 | 115.25 | 181.6 | 64 |
-| 100 ms / 0 % | Plain TCP | 1024 B | 107.59 ± 1.58 | 105.35 | 118.83 | 163.5 | 1024 |
-| 100 ms / 0 % | Plain TCP | 16384 B | 933.64 ± 74.34 | 970.76 | 1459.17 | 1654.3 | 16384 |
-| 100 ms / 0 % | TLS only | 64 B | 106.11 ± 1.74 | 104.58 | 111.87 | 167.8 | 64 |
-| 100 ms / 0 % | TLS only | 1024 B | 109.57 ± 4.38 | 104.66 | 128.37 | 295.3 | 1024 |
-| 100 ms / 0 % | TLS only | 16384 B | 725.13 ± 125.38 | 736.64 | 1065.24 | 1100.1 | 16384 |
-| 100 ms / 0 % | TLS + E2EE | 64 B | 106.64 ± 0.94 | 106.10 | 111.13 | 134.7 | 104 |
-| 100 ms / 0 % | TLS + E2EE | 1024 B | 108.70 ± 1.78 | 106.85 | 118.71 | 177.6 | 1064 |
-| 100 ms / 0 % | TLS + E2EE | 16384 B | 977.03 ± 198.23 | 857.29 | 1598.95 | 2101.9 | 16424 |
-| 200 ms / 0 % | Plain TCP | 64 B | 210.03 ± 1.78 | 205.12 | 238.50 | 307.2 | 64 |
-| 200 ms / 0 % | Plain TCP | 1024 B | 212.49 ± 2.77 | 206.08 | 246.78 | 318.9 | 1024 |
-| 200 ms / 0 % | Plain TCP | 16384 B | 1688.48 ± 261.70 | 1738.57 | 2634.77 | 3248.6 | 16384 |
-| 200 ms / 0 % | TLS only | 64 B | 209.63 ± 0.78 | 205.60 | 236.91 | 296.4 | 64 |
-| 200 ms / 0 % | TLS only | 1024 B | 213.79 ± 5.43 | 206.80 | 263.32 | 335.5 | 1024 |
-| 200 ms / 0 % | TLS only | 16384 B | 2050.84 ± 414.42 | 2069.50 | 3837.08 | 5172.6 | 16384 |
-| 200 ms / 0 % | TLS + E2EE | 64 B | 210.04 ± 1.83 | 206.93 | 229.65 | 285.4 | 104 |
-| 200 ms / 0 % | TLS + E2EE | 1024 B | 213.92 ± 3.45 | 207.85 | 246.68 | 294.8 | 1064 |
-| 200 ms / 0 % | TLS + E2EE | 16384 B | 2138.85 ± 283.79 | 2210.32 | 3634.69 | 4444.5 | 16424 |
-| 20 ms / 2 % | Plain TCP | 64 B | 29.64 ± 3.28 | 25.29 | 54.93 | 133.6 | 64 |
-| 20 ms / 2 % | Plain TCP | 1024 B | 30.26 ± 1.84 | 25.02 | 55.26 | 174.2 | 1024 |
-| 20 ms / 2 % | Plain TCP | 16384 B | 106.50 ± 49.63 | 69.26 | 280.14 | 436.2 | 16384 |
-| 20 ms / 2 % | TLS only | 64 B | 29.26 ± 1.77 | 25.75 | 51.40 | 104.1 | 64 |
-| 20 ms / 2 % | TLS only | 1024 B | 32.28 ± 4.28 | 25.78 | 65.29 | 208.1 | 1024 |
-| 20 ms / 2 % | TLS only | 16384 B | 161.73 ± 107.51 | 79.97 | 472.12 | 613.1 | 16384 |
-| 20 ms / 2 % | TLS + E2EE | 64 B | 30.79 ± 2.06 | 26.80 | 50.48 | 246.5 | 104 |
-| 20 ms / 2 % | TLS + E2EE | 1024 B | 32.40 ± 5.07 | 26.89 | 65.67 | 175.4 | 1064 |
-| 20 ms / 2 % | TLS + E2EE | 16384 B | 196.82 ± 82.78 | 134.14 | 506.13 | 899.8 | 16424 |
-| 20 ms / 5 % | Plain TCP | 64 B | 34.84 ± 4.83 | 25.98 | 82.55 | 139.4 | 64 |
-| 20 ms / 5 % | Plain TCP | 1024 B | 42.16 ± 17.66 | 26.15 | 118.70 | 209.6 | 1024 |
-| 20 ms / 5 % | Plain TCP | 16384 B | 407.01 ± 100.22 | 381.95 | 878.20 | 1236.5 | 16384 |
-| 20 ms / 5 % | TLS only | 64 B | 38.65 ± 7.59 | 26.67 | 104.47 | 317.8 | 64 |
-| 20 ms / 5 % | TLS only | 1024 B | 45.40 ± 5.80 | 29.47 | 104.60 | 433.9 | 1024 |
-| 20 ms / 5 % | TLS only | 16384 B | 392.80 ± 81.87 | 358.78 | 898.73 | 1372.4 | 16384 |
-| 20 ms / 5 % | TLS + E2EE | 64 B | 45.60 ± 20.39 | 27.43 | 120.30 | 337.0 | 104 |
-| 20 ms / 5 % | TLS + E2EE | 1024 B | 49.82 ± 15.82 | 28.13 | 130.68 | 345.5 | 1064 |
-| 20 ms / 5 % | TLS + E2EE | 16384 B | 462.88 ± 118.49 | 394.39 | 1045.95 | 1645.4 | 16424 |
-
-
-
-* Latency is dominated by the network delay (≈ RTT/2 plus a small constant); plain TCP and TLS differ by well under 1 ms at the lowest RTT.
+* 64 B and 1 KiB messages follow the network delay: about RTT/2 plus a few ms (plain TCP, 64 B: 28 ms at 20 ms, 106 ms at 100 ms, 210 ms at 200 ms RTT). TLS and E2EE add little on top of that.
+* 16 KiB messages take several round trips (plain TCP: 31 / 934 / 1688 ms at 20 / 100 / 200 ms RTT). The sender offers a message every 10 ms (about 1.6 MB/s) while TCP's congestion window is still growing, so messages queue behind each other; this is the TCP window effect, present in all three modes, not an encryption cost. It is part of the measurement and is reported as measured.
 * Cost of end-to-end encryption relative to TLS-only for 64-byte messages: rtt20/0%: -2.92 ms, rtt100/0%: +0.53 ms, rtt200/0%: +0.41 ms (differences at the 20-200 ms conditions are within the run-to-run spread, i.e. the Box seal/open cost is not measurable against network jitter there).
 * Figures: `latency_rtt.png`, `latency_loss.png`.
 
@@ -247,8 +213,14 @@ Reading it against the hypotheses:
 whether the server selected a PSK (resumption), handshake bytes per direction, and a **layered accounting** of an application exchange (client → server):
 
 ```
-total wire (L3) = plaintext + E2EE (40 B × msgs) + app framing ((6 + name) × msgs) + TLS records (22 B × app records)
-                  + TCP/IP headers (all packets incl. pure ACKs) + retransmissions + handshake records + (control frames, close_notify)
+total wire (L3) = plaintext
+                  + E2EE            (40 B x messages)
+                  + app framing     ((6 + name length) x messages)
+                  + TLS records     (22 B x application records)
+                  + TCP/IP headers  (all packets, including pure ACKs)
+                  + retransmissions
+                  + handshake records
+                  + control frames and alerts
 ```
 
 Measured from `evidence/captures/` (handshake records, before TCP/IP headers):
@@ -303,4 +275,4 @@ See `README.md` §2: `sudo bash scripts/run_all.sh` reproduces the topology, cap
 
 ## Appendix B — AI-use disclosure
 
-See `docs/AI_USE_DISCLOSURE.md`.
+See the separate AI-use disclosure document submitted with this report.

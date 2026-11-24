@@ -1,106 +1,107 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1290 636" role="img" aria-labelledby="t d">
   <title id="t">Routed topology: 5 namespaces, 2 routers, 4 subnets</title>
   <desc id="d">clientA and clientB reach the relay through routers R1 and R2. Subnets LAN-A 10.0.1.0/24, LAN-B 10.0.2.0/24, LAN-C 10.0.3.0/24 and the transit link LAN-T 10.0.12.0/29 where tc netem impairments are applied.</desc>
   <style>
     .bg{fill:#ffffff}
-    .zone{fill:#f3f6fa;stroke:#c9d4e0;stroke-width:1.2;stroke-dasharray:5 4}
-    .zl{font:600 11px 'Segoe UI',Arial,sans-serif;fill:#52667a;letter-spacing:.06em}
-    .node{fill:#ffffff;stroke:#2d4a66;stroke-width:1.8}
-    .router{fill:#eaf3fc;stroke:#1f6fb5;stroke-width:2}
-    .relay{fill:#eefaf5;stroke:#1f9c74;stroke-width:2}
-    .nt{font:700 15px 'Segoe UI',Arial,sans-serif;fill:#14283b}
-    .ns{font:12px 'Cascadia Code',Consolas,monospace;fill:#4a6076}
-    .ip{font:11px 'Cascadia Code',Consolas,monospace;fill:#1f6fb5}
-    .link{fill:none;stroke:#7c91a6;stroke-width:2.2}
-    .transit{fill:none;stroke:#1f6fb5;stroke-width:3.4}
-    .badge{fill:#fff4e0;stroke:#e29a2d;stroke-width:1.3}
-    .bt{font:600 11px 'Segoe UI',Arial,sans-serif;fill:#9a5b0a}
-    .att{fill:#fff0f0;stroke:#d64550;stroke-width:1.6;stroke-dasharray:4 3}
-    .at{font:600 11px 'Segoe UI',Arial,sans-serif;fill:#b0303a}
-    .note{font:12px 'Segoe UI',Arial,sans-serif;fill:#52667a}
-    .port{font:600 11px 'Cascadia Code',Consolas,monospace;fill:#14664c}
+    .zone{fill:#ffffff;stroke:#555555;stroke-width:1.3;stroke-dasharray:6 4}
+    .zl{font:600 14px 'Segoe UI',Arial,sans-serif;fill:#000000}
+    .node{fill:#ffffff;stroke:#000000;stroke-width:2}
+    .router{fill:#ffffff;stroke:#000000;stroke-width:2.4}
+    .relay{fill:#ffffff;stroke:#000000;stroke-width:2}
+    .nt{font:700 18px 'Segoe UI',Arial,sans-serif;fill:#000000}
+    .ns{font:14px 'Cascadia Code',Consolas,monospace;fill:#000000}
+    .ip{font:13px 'Cascadia Code',Consolas,monospace;fill:#000000}
+    .link{fill:none;stroke:#000000;stroke-width:2}
+    .transit{fill:none;stroke:#000000;stroke-width:3.6}
+    .badge{fill:#ffffff;stroke:#000000;stroke-width:1.4}
+    .bt{font:600 13.5px 'Segoe UI',Arial,sans-serif;fill:#000000}
+    .att{fill:#ffffff;stroke:#000000;stroke-width:1.6;stroke-dasharray:4 3}
+    .at{font:600 13.5px 'Segoe UI',Arial,sans-serif;fill:#000000}
+    .note{font:14px 'Segoe UI',Arial,sans-serif;fill:#000000}
+    .port{font:600 13px 'Cascadia Code',Consolas,monospace;fill:#000000}
     .route{fill:none;stroke:none}
   </style>
-  <rect class="bg" width="1000" height="560"/>
+  <rect class="bg" width="1290" height="636"/>
 
   <!-- subnets -->
-  <rect class="zone" x="24" y="52" width="262" height="146" rx="14"/>
-  <text class="zl" x="40" y="74">LAN-A · 10.0.1.0/24</text>
-  <rect class="zone" x="24" y="342" width="262" height="146" rx="14"/>
-  <text class="zl" x="40" y="364">LAN-C · 10.0.3.0/24</text>
-  <rect class="zone" x="728" y="132" width="250" height="290" rx="14"/>
-  <text class="zl" x="744" y="154">LAN-B · 10.0.2.0/24</text>
+  <rect class="zone" x="20" y="40" width="330" height="186" rx="14"/>
+  <text class="zl" x="38" y="66">LAN-A · 10.0.1.0/24</text>
+  <rect class="zone" x="20" y="384" width="330" height="186" rx="14"/>
+  <text class="zl" x="38" y="410">LAN-C · 10.0.3.0/24</text>
+  <rect class="zone" x="940" y="150" width="330" height="290" rx="14"/>
+  <text class="zl" x="958" y="176">LAN-B · 10.0.2.0/24</text>
 
   <!-- links -->
-  <path id="link-a" class="link" d="M250 130 H305 V245 H360"/>
-  <path id="link-b" class="link" d="M250 420 H305 V295 H360"/>
-  <path id="link-t" class="transit" d="M480 270 H560"/>
-  <path id="link-r" class="link" d="M680 270 H770"/>
+  <path id="link-a" class="link" d="M300 138 H355 V262 H410"/>
+  <path id="link-b" class="link" d="M300 482 H355 V326 H410"/>
+  <path id="link-t" class="transit" d="M550 294 H750"/>
+  <path id="link-r" class="link" d="M890 294 H980"/>
 
   <!-- routes used by the live animation in the dashboard -->
-  <path id="route-a" class="route" d="M250 130 H305 V245 H360 L420 270 H620 H770"/>
-  <path id="route-b" class="route" d="M250 420 H305 V295 H360 L420 270 H620 H770"/>
+  <path id="route-a" class="route" d="M300 138 H355 V262 H410 L480 294 H820 H980"/>
+  <path id="route-b" class="route" d="M300 482 H355 V326 H410 L480 294 H820 H980"/>
 
   <!-- hosts -->
   <g id="n-clientA">
-    <rect class="node" x="56" y="92" width="194" height="76" rx="12"/>
-    <text class="nt" x="74" y="122">clientA · Alice</text>
-    <text class="ns" x="74" y="142">netns clientA</text>
-    <text class="ip" x="74" y="158">eth0 10.0.1.10/24 gw .1</text>
+    <rect class="node" x="46" y="86" width="254" height="104" rx="12"/>
+    <text class="nt" x="64" y="120">clientA · Alice</text>
+    <text class="ns" x="64" y="145">netns clientA</text>
+    <text class="ip" x="64" y="170">eth0 10.0.1.10/24 gw .1</text>
   </g>
   <g id="n-clientB">
-    <rect class="node" x="56" y="382" width="194" height="76" rx="12"/>
-    <text class="nt" x="74" y="412">clientB · Bob</text>
-    <text class="ns" x="74" y="432">netns clientB</text>
-    <text class="ip" x="74" y="448">eth0 10.0.3.10/24 gw .1</text>
+    <rect class="node" x="46" y="430" width="254" height="104" rx="12"/>
+    <text class="nt" x="64" y="464">clientB · Bob</text>
+    <text class="ns" x="64" y="489">netns clientB</text>
+    <text class="ip" x="64" y="514">eth0 10.0.3.10/24 gw .1</text>
   </g>
 
   <!-- routers -->
   <g id="n-r1">
-    <rect class="router" x="360" y="212" width="120" height="116" rx="14"/>
-    <text class="nt" x="420" y="262" text-anchor="middle">R1</text>
-    <text class="ns" x="420" y="280" text-anchor="middle">ip_forward=1</text>
+    <rect class="router" x="410" y="224" width="140" height="140" rx="14"/>
+    <text class="nt" x="480" y="290" text-anchor="middle">R1</text>
+    <text class="ns" x="480" y="312" text-anchor="middle">ip_forward=1</text>
+    <text class="ip" x="420" y="246">eth-a 10.0.1.1</text>
+    <text class="ip" x="420" y="352">eth-b 10.0.3.1</text>
   </g>
   <g id="n-r2">
-    <rect class="router" x="560" y="212" width="120" height="116" rx="14"/>
-    <text class="nt" x="620" y="262" text-anchor="middle">R2</text>
-    <text class="ns" x="620" y="280" text-anchor="middle">ip_forward=1</text>
+    <rect class="router" x="750" y="224" width="140" height="140" rx="14"/>
+    <text class="nt" x="820" y="290" text-anchor="middle">R2</text>
+    <text class="ns" x="820" y="312" text-anchor="middle">ip_forward=1</text>
   </g>
-  <text class="ip" x="364" y="238">eth-a .1.1</text>
-  <text class="ip" x="364" y="316">eth-b .3.1</text>
-  <text class="ip" x="484" y="262">eth-t</text>
-  <text class="ip" x="484" y="296">.12.1</text>
-  <text class="ip" x="528" y="262">eth-t</text>
-  <text class="ip" x="528" y="296">.12.2</text>
-  <text class="ip" x="684" y="262">eth-rl</text>
-  <text class="ip" x="684" y="296">.2.1</text>
+  <text class="ip" x="558" y="280">eth-t</text>
+  <text class="ip" x="558" y="318">.12.1</text>
+  <text class="ip" x="742" y="280" text-anchor="end">eth-t</text>
+  <text class="ip" x="742" y="318" text-anchor="end">.12.2</text>
+  <text class="ip" x="898" y="280">eth-rl</text>
+  <text class="ip" x="898" y="318">.2.1</text>
 
   <!-- relay -->
   <g id="n-relay">
-    <rect class="relay" x="770" y="200" width="188" height="140" rx="14"/>
-    <text class="nt" x="790" y="230">relay</text>
-    <text class="ns" x="790" y="248">netns relay · eth0 10.0.2.10/24</text>
-    <text class="port" x="790" y="276">:8443  TLS 1.3 (1.2 for comparison)</text>
-    <text class="port" x="790" y="296">:8080  plain TCP (baseline mode)</text>
-    <text class="port" x="790" y="316">:5201  iperf3 (link check only)</text>
+    <rect class="relay" x="980" y="212" width="276" height="164" rx="14"/>
+    <text class="nt" x="998" y="244">relay</text>
+    <text class="ns" x="998" y="266">netns relay</text>
+    <text class="ip" x="998" y="286">eth0 10.0.2.10/24</text>
+    <text class="port" x="998" y="316">:8443  TLS 1.3 (+1.2)</text>
+    <text class="port" x="998" y="338">:8080  plain TCP</text>
+    <text class="port" x="998" y="360">:5201  iperf3</text>
   </g>
 
   <!-- transit annotations -->
-  <text class="zl" x="520" y="196" text-anchor="middle">LAN-T · 10.0.12.0/29</text>
-  <rect class="badge" x="446" y="344" width="148" height="40" rx="8"/>
-  <text class="bt" x="520" y="361" text-anchor="middle">tc netem delay (both sides)</text>
-  <text class="bt" x="520" y="376" text-anchor="middle">loss on R1 egress · tbf rate</text>
-  <path d="M520 344 V282" fill="none" stroke="#e29a2d" stroke-width="1.3" stroke-dasharray="3 3"/>
+  <text class="zl" x="650" y="206" text-anchor="middle">LAN-T · 10.0.12.0/29</text>
+  <rect class="badge" x="540" y="372" width="220" height="50" rx="8"/>
+  <text class="bt" x="650" y="393" text-anchor="middle">tc netem delay (both sides)</text>
+  <text class="bt" x="650" y="412" text-anchor="middle">loss on R1 egress · tbf rate</text>
+  <path d="M650 296 V372" fill="none" stroke="#000000" stroke-width="1.4" stroke-dasharray="3 3"/>
 
   <!-- optional attacker -->
-  <circle class="att" cx="520" cy="448" r="30"/>
-  <text class="at" x="520" y="446" text-anchor="middle">.12.3</text>
-  <text class="at" x="520" y="460" text-anchor="middle">attacker</text>
-  <path d="M520 418 V384" fill="none" stroke="#d64550" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <text class="note" x="560" y="452">reserved address for an on-path attacker</text>
-  <text class="note" x="560" y="468">(R1 redirects :8443 to a forged-cert proxy)</text>
+  <circle class="att" cx="650" cy="492" r="36"/>
+  <text class="at" x="650" y="489" text-anchor="middle">.12.3</text>
+  <text class="at" x="650" y="506" text-anchor="middle">attacker</text>
+  <path d="M650 422 V456" fill="none" stroke="#000000" stroke-width="1.3" stroke-dasharray="3 3"/>
+  <text class="note" x="700" y="488">reserved for an on-path attacker</text>
+  <text class="note" x="700" y="508">(R1 redirects :8443 to a forged-cert proxy)</text>
 
   <!-- caption -->
-  <text class="note" x="24" y="526">Every message A→relay→B crosses LAN-T twice (once per direction of travel), so impairments there affect every experiment uniformly.</text>
-  <text class="note" x="24" y="544">Static routes — R1: 10.0.2.0/24 via 10.0.12.2 · R2: 10.0.1.0/24 and 10.0.3.0/24 via 10.0.12.1 · hosts default via their router.</text>
+  <text class="note" x="20" y="608">Every message A to relay to B crosses LAN-T, so impairments there affect every experiment uniformly.</text>
+  <text class="note" x="20" y="628">Static routes: R1 10.0.2.0/24 via 10.0.12.2 · R2 10.0.1.0/24 and 10.0.3.0/24 via 10.0.12.1 · hosts default via their router.</text>
 </svg>

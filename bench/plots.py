@@ -17,18 +17,18 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from bench import conditions as C
 
-COLORS = {"tcp": "#7a8793", "tls12": "#d98b2b", "tls13": "#2f8fd8", "tls13_resumed": "#27b38a",
-          "tls": "#2f8fd8", "e2ee": "#8e63ce"}
+COLORS = {"tcp": "#bdbdbd", "tls12": "#7f7f7f", "tls13": "#3f3f3f", "tls13_resumed": "#000000",
+          "tls": "#7f7f7f", "e2ee": "#000000"}
 
 
 def style():
     plt.rcParams.update({"figure.dpi": 140, "axes.spines.top": False, "axes.spines.right": False,
                          "axes.grid": True, "grid.alpha": .25, "axes.axisbelow": True,
-                         "font.size": 9, "axes.titleweight": "bold", "legend.frameon": False})
+                         "font.size": 9.5, "axes.titleweight": "bold", "legend.frameon": False})
 
 
 def label(c):
-    return f"{c['rtt_ms']} ms / {c['loss_pct']}%"
+    return f"{c['rtt_ms']} ms\n{c['loss_pct']}% loss"
 
 
 def grouped(ax, conds, series, get, ylabel):
@@ -82,12 +82,21 @@ def main():
     for name, sweep, title in (("rtt", A, "RTT sweep"), ("loss", B, "Loss sweep")):
         if not sweep:
             continue
-        fig, axes = plt.subplots(1, len(C.PAYLOADS), figsize=(10, 3.2), sharey=True)
+        fig, axes = plt.subplots(1, len(C.PAYLOADS), figsize=(8.2, 3.7), sharey=True)
         for ax, pl in zip(axes, C.PAYLOADS):
             grouped(ax, sweep, C.MODES, lat(pl), "message latency (ms)")
+            if name == "rtt":                      # 16 KiB takes several RTTs; a log axis keeps 64 B visible
+                top = max(v["mean"] + v["sd"] for c in sweep for m in C.MODES
+                          for v in [lat(pl)(c["id"], m)] if v) * 2.2
+                ax.set_yscale("log"); ax.set_ylim(10, top)
             ax.set_title(f"{pl} B payload")
+        for ax in axes:
+            if ax.get_legend():
+                ax.get_legend().remove()
+        handles = [plt.Rectangle((0, 0), 1, 1, color=COLORS[m]) for m in C.MODES]
         fig.suptitle(f"End-to-end message latency A -> relay -> B: {title}{tag}", fontweight="bold")
-        fig.tight_layout(); fig.savefig(f"{a.out}/latency_{name}.png"); plt.close(fig)
+        fig.legend(handles, [C.LABELS[m] for m in C.MODES], loc="lower center", ncol=3, fontsize=9)
+        fig.tight_layout(rect=(0, 0.07, 1, 1)); fig.savefig(f"{a.out}/latency_{name}.png"); plt.close(fig)
 
     # E2EE overhead vs payload size: fixed 40 B => proportionally huge for tiny messages
     fig, ax = plt.subplots(figsize=(5.6, 3.2))
